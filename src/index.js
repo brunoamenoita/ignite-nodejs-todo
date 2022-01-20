@@ -42,20 +42,19 @@ app.post('/users', (request, response) => {
 
   if (userAlreadyExists) {
     return response.status(400).json({
-      error: 'User already exists'
+      error: 'Username already exists'
     });
   }
-
-  users.push({
+  const user = {
     id: uuidv4(),
     name,
     username,
     todos: []
-  });
+  };
 
-  response.status(200).json({
-    messages: "Created User Successfull!"
-  });
+  users.push(user);
+
+  response.status(201).json(user);
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
@@ -88,9 +87,7 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
   user.todos.push(newTodo);
 
-  return response.status(201).json({
-    message: "Created Todo Successfully!"
-  });
+  return response.status(201).json(newTodo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
@@ -109,20 +106,18 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
     user
   } = request;
 
-  const todo = user.todos.filter((todo) => todo.id === id);
+  const todo = user.todos.find((todo) => todo.id === id);
 
-  if (!todo[0]) {
+  if (!todo) {
     return response.status(404).json({
       error: 'Todo not found'
     });
   };
 
-  todo[0].title = title;
-  todo[0].deadline = new Date(deadline);
+  todo.title = title;
+  todo.deadline = new Date(deadline);
 
-  return response.status(201).json({
-    message: 'Updated Successfull!'
-  });
+  return response.status(201).json(todo);
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
@@ -134,19 +129,17 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
     user
   } = request;
 
-  const todo = user.todos.filter((todo) => todo.id === id);
+  const todo = user.todos.find((todo) => todo.id === id);
 
-  if (!todo[0]) {
+  if (!todo) {
     return response.status(404).json({
       error: 'Todo not found'
     });
   };
 
-  todo[0].done = true;
+  todo.done = true;
 
-  response.status(201).json({
-    message: 'Todo Done Successfull!'
-  });
+  response.status(201).json(todo);
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
@@ -159,21 +152,17 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
     user
   } = request;
 
-  const todo = user.todos.map(function (item) {
-    return item.id
-  }).indexOf(id);
+  const todoIndex = user.todos.findIndex(todo => todo.id === id);
 
-  if (todo === -1) {
+  if (todoIndex === -1) {
     return response.status(404).json({
       error: 'Todo not found'
     });
   };
 
-  user.todos.splice(todo, 1);
+  user.todos.splice(todoIndex, 1);
 
-  response.status(201).json({
-    message: 'Todo Removed Successfully!'
-  });
+  return response.status(204).json();
 });
 
 module.exports = app;
